@@ -3,7 +3,8 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Settings, PanelLeft, RefreshCw, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -75,7 +76,7 @@ export function TopBar() {
         {isSignedIn && (
           <DropdownMenu>
             <DropdownMenuTrigger
-              render={<Button variant="ghost" size="sm" className="gap-1.5" />}
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-1.5")}
               aria-label="Account menu"
             >
               {lastSyncedAt ? (
