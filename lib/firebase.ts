@@ -2,15 +2,14 @@
 // Firebase SDK is NEVER statically imported — only dynamic imports inside functions.
 // isFirebaseEnabled is synchronous (env vars are baked in at Next.js build time).
 
-const REQUIRED_ENV_VARS = [
-  "NEXT_PUBLIC_FIREBASE_API_KEY",
-  "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
-  "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
-  "NEXT_PUBLIC_FIREBASE_APP_ID",
-] as const;
-
-export const isFirebaseEnabled: boolean = REQUIRED_ENV_VARS.every(
-  (key) => typeof process.env[key] === "string" && process.env[key] !== ""
+// Must use literal property access (process.env.NEXT_PUBLIC_X) — Next.js can
+// only statically replace NEXT_PUBLIC_* vars when accessed as literal strings,
+// not via dynamic bracket notation (process.env[key]).
+export const isFirebaseEnabled: boolean = !!(
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+  process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
+  process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 );
 
 interface FirebaseServices {
