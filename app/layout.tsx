@@ -3,6 +3,7 @@ import "@fontsource-variable/inter";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { FirebaseProvider } from "@/components/firebase-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ export default function RootLayout({
             {children}
           </TooltipProvider>
           <Toaster />
+          <FirebaseProvider />
         </ThemeProvider>
       </body>
     </html>
