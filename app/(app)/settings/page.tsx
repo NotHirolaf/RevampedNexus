@@ -1,16 +1,33 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useRef } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { ModulesSection } from "@/components/settings/modules-section";
 import { AppearanceSection } from "@/components/settings/appearance-section";
 import { DataSection } from "@/components/settings/data-section";
+import { AccountSection } from "@/components/settings/account-section";
 import { AboutSection } from "@/components/settings/about-section";
 import { useMounted } from "@/hooks/use-hydration";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AnimatePresence, motion } from "motion/react";
+
+const TAB_ORDER = ["profile", "modules", "appearance", "data", "account", "about"] as const;
+type TabValue = (typeof TAB_ORDER)[number];
+
+const TAB_CONTENT: Record<TabValue, React.ReactNode> = {
+  profile: <ProfileSection />,
+  modules: <ModulesSection />,
+  appearance: <AppearanceSection />,
+  data: <DataSection />,
+  account: <AccountSection />,
+  about: <AboutSection />,
+};
 
 export default function SettingsPage() {
   const mounted = useMounted();
+  const [activeTab, setActiveTab] = useState<TabValue>("profile");
+  const prevIndex = useRef(0);
 
   if (!mounted) {
     return (
@@ -22,33 +39,43 @@ export default function SettingsPage() {
     );
   }
 
+  function handleTabChange(value: string | number | null) {
+    if (value === null) return;
+    const val = String(value) as TabValue;
+    prevIndex.current = TAB_ORDER.indexOf(activeTab);
+    setActiveTab(val);
+  }
+
+  const currentIndex = TAB_ORDER.indexOf(activeTab);
+  const direction = currentIndex > prevIndex.current ? 1 : -1;
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Settings</h1>
-      <Tabs defaultValue="profile" className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="modules">Modules</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="data">Data</TabsTrigger>
+          <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
         </TabsList>
-        <TabsContent value="profile" className="mt-6">
-          <ProfileSection />
-        </TabsContent>
-        <TabsContent value="modules" className="mt-6">
-          <ModulesSection />
-        </TabsContent>
-        <TabsContent value="appearance" className="mt-6">
-          <AppearanceSection />
-        </TabsContent>
-        <TabsContent value="data" className="mt-6">
-          <DataSection />
-        </TabsContent>
-        <TabsContent value="about" className="mt-6">
-          <AboutSection />
-        </TabsContent>
       </Tabs>
+
+      <div className="overflow-hidden">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: direction * 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: direction * -60 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+          >
+            {TAB_CONTENT[activeTab]}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
