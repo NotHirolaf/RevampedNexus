@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, Trash2, Loader2 } from "lucide-react";
+import { RefreshCw, Trash2, Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,9 +28,11 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { useRouter } from "next/navigation";
 import { useMounted } from "@/hooks/use-hydration";
 import { isFirebaseEnabled, getFirebaseServices } from "@/lib/firebase";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useOnboardingStore } from "@/stores/onboarding-store";
 import { toast } from "sonner";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -61,16 +63,20 @@ function getInitials(name: string | null): string {
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 export function AccountSection() {
+  const router = useRouter();
   const mounted = useMounted();
   const user = useAuthStore((s) => s.user);
   const syncEnabled = useAuthStore((s) => s.syncEnabled);
   const lastSyncedAt = useAuthStore((s) => s.lastSyncedAt);
   const _syncNow = useAuthStore((s) => s._syncNow);
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
+  const signOut = useAuthStore((s) => s.signOut);
   const toggleSync = useAuthStore((s) => s.toggleSync);
+  const resetOnboarding = useOnboardingStore((s) => s.resetOnboarding);
 
   const [deletingCloud, setDeletingCloud] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   // Guard against hydration mismatch.
   if (!mounted) return null;
@@ -129,6 +135,13 @@ export function AccountSection() {
   }
 
   // ── Signed in ─────────────────────────────────────────────────────────────
+  async function handleSignOut() {
+    setSigningOut(true);
+    await signOut();
+    resetOnboarding();
+    router.replace("/onboarding");
+  }
+
   async function handleDeleteCloudData() {
     if (!user) return;
     setDeletingCloud(true);
@@ -206,6 +219,24 @@ export function AccountSection() {
           >
             <RefreshCw className="size-4" />
             Sync Now
+          </Button>
+
+          <Separator />
+
+          {/* Sign out */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 w-full sm:w-auto text-destructive hover:text-destructive border-destructive/40 hover:border-destructive/60 hover:bg-destructive/5"
+            onClick={handleSignOut}
+            disabled={signingOut}
+          >
+            {signingOut ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <LogOut className="size-4" />
+            )}
+            {signingOut ? "Signing out…" : "Sign Out"}
           </Button>
         </CardContent>
       </Card>
