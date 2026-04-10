@@ -15,7 +15,6 @@ import {
 import { useGPAStore } from "@/stores/useGPAStore";
 import { useProfileStore } from "@/stores/profile-store";
 import {
-  getCategoryAverage,
   getCourseGrade,
   getLetterGrade,
   calculateManualGPA,
