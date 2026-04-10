@@ -1,5 +1,5 @@
-import { ModulePlaceholder } from "@/components/modules/module-placeholder";
+import { GradesView } from "@/components/modules/grades/grades-view";
 
 export default function GradesPage() {
-  return <ModulePlaceholder moduleId="grades" />;
+  return <GradesView />;
 }
