@@ -1,5 +1,5 @@
-import { ModulePlaceholder } from "@/components/modules/module-placeholder";
+import { GpaView } from "@/components/modules/gpa/gpa-view";
 
 export default function GpaPage() {
-  return <ModulePlaceholder moduleId="gpa" />;
+  return <GpaView />;
 }
