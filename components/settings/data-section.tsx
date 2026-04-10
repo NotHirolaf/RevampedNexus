@@ -30,6 +30,16 @@ import { useModuleStore } from "@/stores/module-store";
 import { useProfileStore } from "@/stores/profile-store";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useThemeStore } from "@/stores/theme-store";
+import { useTodoStore } from "@/stores/useTodoStore";
+import { useEventStore } from "@/stores/useEventStore";
+import { useTimetableStore } from "@/stores/useTimetableStore";
+import { useGradeStore } from "@/stores/useGradeStore";
+import { useGPAStore } from "@/stores/useGPAStore";
+import { usePomodoroStore } from "@/stores/usePomodoroStore";
+import { useLinkStore } from "@/stores/useLinkStore";
+import { useHabitStore } from "@/stores/useHabitStore";
+import { useCanvasStore } from "@/stores/useCanvasStore";
+import { useDashboardStore } from "@/stores/useDashboardStore";
 import { toast } from "sonner";
 import type { ExportData } from "@/types";
 
@@ -41,8 +51,9 @@ export function DataSection() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleExport() {
+    const canvasState = useCanvasStore.getState();
     const data: ExportData = {
-      version: "1.0.0",
+      version: "3.0.0",
       timestamp: new Date().toISOString(),
       modules: useModuleStore.getState().enabledModules,
       profile: {
@@ -51,9 +62,31 @@ export function DataSection() {
         semester: useProfileStore.getState().semester,
         gpaScale: useProfileStore.getState().gpaScale,
         customGpaMax: useProfileStore.getState().customGpaMax,
+        creditsObtained: useProfileStore.getState().creditsObtained,
+        creditsRequired: useProfileStore.getState().creditsRequired,
       },
       onboarding: { completed: useOnboardingStore.getState().completed },
       theme: { accentColor: useThemeStore.getState().accentColor },
+      todos: useTodoStore.getState().items,
+      events: useEventStore.getState().items,
+      timetable: useTimetableStore.getState().entries,
+      courses: useGradeStore.getState().courses,
+      gpaManualEntries: useGPAStore.getState().manualEntries,
+      pomodoroSessions: usePomodoroStore.getState().sessions,
+      pomodoroSettings: usePomodoroStore.getState().settings,
+      links: useLinkStore.getState().links,
+      habits: useHabitStore.getState().habits,
+      canvasConfig: canvasState.baseUrl
+        ? {
+            baseUrl: canvasState.baseUrl,
+            selectedCourseIds: canvasState.selectedCourseIds,
+            syncIntervalMinutes: canvasState.syncIntervalMinutes,
+          }
+        : undefined,
+      dashboardLayout: {
+        widgetOrder: useDashboardStore.getState().widgetOrder,
+        hiddenWidgets: useDashboardStore.getState().hiddenWidgets,
+      },
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -63,7 +96,7 @@ export function DataSection() {
     const a = document.createElement("a");
     const date = new Date().toISOString().split("T")[0];
     a.href = url;
-    a.download = `nexus-backup-${date}-v1.json`;
+    a.download = `nexus-backup-${date}-v3.json`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Data exported successfully");
@@ -111,6 +144,42 @@ export function DataSection() {
       if (importPreview.theme?.accentColor) {
         useThemeStore.getState().setAccentColor(importPreview.theme.accentColor);
       }
+      // v2 fields
+      if (importPreview.todos) {
+        useTodoStore.getState().setTodos(importPreview.todos);
+      }
+      if (importPreview.events) {
+        useEventStore.getState().setEvents(importPreview.events);
+      }
+      if (importPreview.timetable) {
+        useTimetableStore.getState().setEntries(importPreview.timetable);
+      }
+      if (importPreview.courses) {
+        useGradeStore.getState().setCourses(importPreview.courses);
+      }
+      if (importPreview.gpaManualEntries) {
+        useGPAStore.getState().setManualEntries(importPreview.gpaManualEntries);
+      }
+      if (importPreview.pomodoroSessions) {
+        usePomodoroStore.getState().setSessions(importPreview.pomodoroSessions);
+      }
+      if (importPreview.pomodoroSettings) {
+        usePomodoroStore.getState().setSettings(importPreview.pomodoroSettings);
+      }
+      if (importPreview.links) {
+        useLinkStore.getState().setLinks(importPreview.links);
+      }
+      if (importPreview.habits) {
+        useHabitStore.getState().setHabits(importPreview.habits);
+      }
+      if (importPreview.canvasConfig) {
+        useCanvasStore.getState().setSelectedCourses(importPreview.canvasConfig.selectedCourseIds);
+        useCanvasStore.getState().setSyncInterval(importPreview.canvasConfig.syncIntervalMinutes);
+      }
+      if (importPreview.dashboardLayout) {
+        if (importPreview.dashboardLayout.widgetOrder) useDashboardStore.getState().setWidgetOrder(importPreview.dashboardLayout.widgetOrder);
+        if (importPreview.dashboardLayout.hiddenWidgets) useDashboardStore.getState().setHiddenWidgets(importPreview.dashboardLayout.hiddenWidgets);
+      }
 
       toast.success("Data imported successfully");
       setShowImportDialog(false);
@@ -138,6 +207,7 @@ export function DataSection() {
     useProfileStore.getState().resetProfile();
     useOnboardingStore.getState().resetOnboarding();
     useThemeStore.getState().resetTheme();
+    useDashboardStore.getState().resetDashboard();
 
     setDeleteInput("");
     toast.success("All data cleared");
