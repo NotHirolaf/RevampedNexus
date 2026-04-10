@@ -3,21 +3,20 @@
 import Link from "next/link";
 import { Calculator, TrendingUp, TrendingDown, Minus, ArrowRight } from "lucide-react";
 import { useGradeStore } from "@/stores/useGradeStore";
-import { useGPAStore } from "@/stores/useGPAStore";
+import { useGPAStore, computeCumulativeGPA } from "@/stores/useGPAStore";
 import { useProfileStore } from "@/stores/profile-store";
 import { useIsModuleEnabled } from "@/hooks/use-modules";
 import { WidgetCard } from "@/components/dashboard/widget-card";
 import { Button } from "@/components/ui/button";
 import {
   calculateGPA,
-  calculateManualGPA,
   calculateSemesterGPA,
   getSortedSemesters,
 } from "@/lib/grade-utils";
 
 export function CurrentGPAWidget() {
   const courses = useGradeStore((s) => s.courses);
-  const manualEntries = useGPAStore((s) => s.manualEntries);
+  const { baseCGPA, baseCredits, semesterUpdates } = useGPAStore();
   const gpaScale = useProfileStore((s) => s.gpaScale);
   const customGpaMax = useProfileStore((s) => s.customGpaMax);
   const gpaEnabled = useIsModuleEnabled("gpa");
@@ -25,10 +24,23 @@ export function CurrentGPAWidget() {
 
   if (!gpaEnabled && !gradesEnabled) return null;
 
-  const useGradeTracker = gradesEnabled;
-  const isEmpty = useGradeTracker
-    ? courses.length === 0
-    : manualEntries.length === 0;
+  const maxGpa =
+    gpaScale === "percentage" ? 100
+    : gpaScale === "4.3" ? 4.3
+    : gpaScale === "custom" ? (customGpaMax ?? 4.0)
+    : 4.0;
+
+  // Determine GPA value
+  const gradeTrackerResult = gradesEnabled
+    ? calculateGPA(courses, gpaScale, customGpaMax)
+    : null;
+
+  const manualResult = !gradesEnabled
+    ? computeCumulativeGPA(baseCGPA, baseCredits, semesterUpdates)
+    : null;
+
+  const gpa = gradesEnabled ? gradeTrackerResult?.gpa ?? null : manualResult?.cgpa ?? null;
+  const isEmpty = gpa === null;
 
   if (isEmpty) {
     return (
@@ -43,7 +55,7 @@ export function CurrentGPAWidget() {
             size="sm"
             render={<Link href={gradesEnabled ? "/grades" : "/gpa"} />}
           >
-            {gradesEnabled ? "Add Grades" : "Add GPA"}
+            {gradesEnabled ? "Add Grades" : "Set Up GPA"}
             <ArrowRight className="size-4 ml-1" />
           </Button>
         </div>
@@ -51,54 +63,35 @@ export function CurrentGPAWidget() {
     );
   }
 
-  const result = useGradeTracker
-    ? calculateGPA(courses, gpaScale, customGpaMax)
-    : calculateManualGPA(manualEntries, gpaScale, customGpaMax);
-
-  if (!result) {
-    return (
-      <WidgetCard title="GPA" icon={Calculator} href="/gpa">
-        <p className="text-sm text-muted-foreground py-2">
-          Unable to calculate GPA from current grades
-        </p>
-      </WidgetCard>
-    );
-  }
-
-  // Trend: compare current semester GPA to previous
+  // Trend — compare last two semesters (grade tracker only)
   let TrendIcon = Minus;
   let trendColor = "text-muted-foreground";
 
-  if (useGradeTracker) {
+  if (gradesEnabled) {
     const semesters = getSortedSemesters(courses);
     if (semesters.length >= 2) {
       const prev = semesters[semesters.length - 2];
       const curr = semesters[semesters.length - 1];
       const prevGpa = calculateSemesterGPA(courses, prev, gpaScale, customGpaMax);
       const currGpa = calculateSemesterGPA(courses, curr, gpaScale, customGpaMax);
-
       if (prevGpa && currGpa) {
-        if (currGpa.gpa > prevGpa.gpa + 0.01) {
-          TrendIcon = TrendingUp;
-          trendColor = "text-green-500";
-        } else if (currGpa.gpa < prevGpa.gpa - 0.01) {
-          TrendIcon = TrendingDown;
-          trendColor = "text-destructive";
-        }
+        if (currGpa.gpa > prevGpa.gpa + 0.01) { TrendIcon = TrendingUp; trendColor = "text-green-500"; }
+        else if (currGpa.gpa < prevGpa.gpa - 0.01) { TrendIcon = TrendingDown; trendColor = "text-destructive"; }
       }
     }
+  } else if (semesterUpdates.length >= 2) {
+    const prev = semesterUpdates[semesterUpdates.length - 2];
+    const curr = semesterUpdates[semesterUpdates.length - 1];
+    if (curr.sGPA > prev.sGPA + 0.01) { TrendIcon = TrendingUp; trendColor = "text-green-500"; }
+    else if (curr.sGPA < prev.sGPA - 0.01) { TrendIcon = TrendingDown; trendColor = "text-destructive"; }
   }
 
   return (
     <WidgetCard title="GPA" icon={Calculator} href="/gpa">
       <div className="flex items-center gap-3">
         <div>
-          <p className="text-3xl font-bold tabular-nums">
-            {result.gpa.toFixed(2)}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            / {result.maxGpa} scale
-          </p>
+          <p className="text-3xl font-bold tabular-nums">{gpa!.toFixed(2)}</p>
+          <p className="text-sm text-muted-foreground">/ {maxGpa} scale</p>
         </div>
         <TrendIcon className={`size-5 ${trendColor}`} />
       </div>

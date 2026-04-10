@@ -71,7 +71,7 @@ export function DataSection() {
       events: useEventStore.getState().items,
       timetable: useTimetableStore.getState().entries,
       courses: useGradeStore.getState().courses,
-      gpaManualEntries: useGPAStore.getState().manualEntries,
+      gpaData: { baseCGPA: useGPAStore.getState().baseCGPA, baseCredits: useGPAStore.getState().baseCredits, semesterUpdates: useGPAStore.getState().semesterUpdates },
       pomodoroSessions: usePomodoroStore.getState().sessions,
       pomodoroSettings: usePomodoroStore.getState().settings,
       links: useLinkStore.getState().links,
@@ -157,8 +157,10 @@ export function DataSection() {
       if (importPreview.courses) {
         useGradeStore.getState().setCourses(importPreview.courses);
       }
-      if (importPreview.gpaManualEntries) {
-        useGPAStore.getState().setManualEntries(importPreview.gpaManualEntries);
+      if ((importPreview as any).gpaData) {
+        const d = (importPreview as any).gpaData;
+        useGPAStore.getState().setBase(d.baseCGPA ?? null, d.baseCredits ?? 0);
+        if (d.semesterUpdates) useGPAStore.getState().setSemesterUpdates(d.semesterUpdates);
       }
       if (importPreview.pomodoroSessions) {
         usePomodoroStore.getState().setSessions(importPreview.pomodoroSessions);
