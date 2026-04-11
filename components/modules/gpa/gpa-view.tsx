@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { RefreshCw, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -189,19 +188,6 @@ export function GpaView() {
     <ModuleGuard moduleId="gpa">
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">GPA Calculator</h1>
-
-        {/* Auto-sync banner */}
-        {gradesEnabled && (
-          <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20 px-3 py-2 text-sm text-blue-700 dark:text-blue-400">
-            <RefreshCw className="size-4 shrink-0" />
-            <span>
-              GPA auto-synced from Grade Tracker —{" "}
-              <Link href="/grades" className="underline underline-offset-2 hover:opacity-80">
-                manage grades
-              </Link>
-            </span>
-          </div>
-        )}
 
         {/* cGPA display */}
         <Card>
