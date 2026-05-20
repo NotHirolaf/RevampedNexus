@@ -52,7 +52,17 @@ export interface ExportData {
   timetable?: TimetableEntry[];
   grades?: GradeEntry[]; // deprecated v2 — kept for backward-compat import
   courses?: Course[];
-  gpaManualEntries?: ManualGPAEntry[];
+  gpaManualEntries?: ManualGPAEntry[]; // legacy — pre-semesterUpdates schema
+  gpaData?: {
+    baseCGPA: number | null;
+    baseCredits: number;
+    semesterUpdates: {
+      id: string;
+      label: string;
+      sGPA: number;
+      credits: number;
+    }[];
+  };
   pomodoroSessions?: PomodoroSession[];
   pomodoroSettings?: PomodoroSettings;
   links?: QuickLink[];
@@ -122,17 +132,28 @@ export interface EventItem {
 
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
+export type TimetableCategory =
+  | "class"
+  | "study"
+  | "break"
+  | "personal"
+  | "other";
+
 export interface TimetableEntry {
   id: string;
-  courseCode: string;
-  courseName: string;
-  type: "lecture" | "lab" | "tutorial" | "seminar" | "other";
+  title: string;
+  category: TimetableCategory;
   day: DayOfWeek;
   startTime: string; // HH:MM (24h)
   endTime: string;   // HH:MM (24h)
-  location: string;
-  instructor: string;
   color: string;
+  notes?: string;
+  // Optional legacy / extra fields (retained for forward-compat)
+  courseCode?: string;
+  courseName?: string;
+  type?: "lecture" | "lab" | "tutorial" | "seminar" | "other";
+  location?: string;
+  instructor?: string;
 }
 
 // ─── Grades ──────────────────────────────────────────────────────────────
@@ -154,6 +175,7 @@ export interface GradeItem {
   name: string;
   scoreEarned: number;
   scorePossible: number;
+  weight?: number; // optional contribution weight (e.g. 30 = 30%). Defaults to equal weight when absent.
   date: string; // ISO date string YYYY-MM-DD
 }
 
@@ -223,14 +245,46 @@ export interface QuickLink {
 
 // ─── Habits ──────────────────────────────────────────────────────────────
 
+export type HabitFrequency = "daily" | "weekdays" | "custom";
+
 export interface Habit {
   id: string;
   name: string;
-  description: string;
-  frequency: "daily" | "weekly";
-  targetCount: number;
-  createdAt: string;
+  icon?: string; // emoji string (e.g., "📚") or Lucide icon name
+  color: string; // hex color used for heatmap accent
+  frequency: HabitFrequency;
+  customDays?: number[]; // 0=Sun, 1=Mon, ..., 6=Sat
   completions: string[]; // YYYY-MM-DD date strings
+  createdAt: string;
+  order: number;
+}
+
+// ─── Kanban ──────────────────────────────────────────────────────────────
+
+export type KanbanPriority = "low" | "medium" | "high";
+
+export interface KanbanCard {
+  id: string;
+  title: string;
+  description?: string;
+  courseTag?: string;
+  dueDate?: string; // ISO date YYYY-MM-DD
+  priority?: KanbanPriority;
+  labels?: string[];
+  createdAt: string;
+}
+
+export interface KanbanColumn {
+  id: string;
+  name: string;
+  cards: KanbanCard[];
+}
+
+export interface KanbanBoard {
+  id: string;
+  name: string;
+  columns: KanbanColumn[];
+  createdAt: string;
 }
 
 // ─── Canvas LMS ──────────────────────────────────────────────────────────

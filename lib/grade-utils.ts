@@ -121,7 +121,7 @@ function maxGpaForScale(scale: GpaScale, customMax: number | null): number {
 }
 
 /**
- * Calculates GPA from a list of courses.
+ * Calculates GPA from a list of courses using the category-weighted model.
  * Only courses that have a computed grade contribute.
  */
 export function calculateGPA(
@@ -144,6 +144,50 @@ export function calculateGPA(
     gpa: totalPoints / totalCredits,
     maxGpa: maxGpaForScale(scale, customMax),
   };
+}
+
+/**
+ * Calculates GPA from a list of courses using the flat per-item weighted model
+ * (getFlatCourseGrade). Use this wherever the Grade Tracker's flat UI is the
+ * source of truth.
+ */
+export function calculateFlatGPA(
+  courses: Course[],
+  scale: GpaScale,
+  customMax: number | null
+): { gpa: number; maxGpa: number } | null {
+  let totalPoints = 0;
+  let totalCredits = 0;
+
+  for (const course of courses) {
+    const pct = getFlatCourseGrade(course);
+    if (pct === null) continue;
+    const pts = percentageToGradePoints(pct, scale, customMax);
+    totalPoints += pts * course.creditHours;
+    totalCredits += course.creditHours;
+  }
+
+  if (totalCredits === 0) return null;
+  return {
+    gpa: totalPoints / totalCredits,
+    maxGpa: maxGpaForScale(scale, customMax),
+  };
+}
+
+/**
+ * Calculates semester GPA using the flat per-item weighted model.
+ */
+export function calculateFlatSemesterGPA(
+  courses: Course[],
+  semester: string,
+  scale: GpaScale,
+  customMax: number | null
+): { gpa: number; maxGpa: number } | null {
+  return calculateFlatGPA(
+    courses.filter((c) => c.semester === semester),
+    scale,
+    customMax
+  );
 }
 
 /**
@@ -205,4 +249,50 @@ export function calculateManualGPA(
  */
 export function getSortedSemesters(courses: Course[]): string[] {
   return [...new Set(courses.map((c) => c.semester))].sort();
+}
+
+/**
+ * Returns the course standing as a percentage out of 100% of the total course
+ * weight. Only items WITH an explicit weight contribute; unsubmitted items
+ * (no entry) implicitly score 0 for their share of the remaining weight.
+ * Formula: Σ(pct_i × w_i) / 100.
+ * Returns null when no items have weights (fall back to performance mode).
+ */
+export function getFlatCourseStanding(course: Course): number | null {
+  const allItems = course.categories.flatMap((c) => c.items);
+  const weightedItems = allItems.filter((i) => i.weight != null && i.weight > 0);
+  if (weightedItems.length === 0) return null;
+
+  let weightedSum = 0;
+  for (const item of weightedItems) {
+    if (item.scorePossible === 0) continue;
+    const pct = (item.scoreEarned / item.scorePossible) * 100;
+    weightedSum += pct * item.weight!;
+  }
+  return weightedSum / 100;
+}
+
+/**
+ * Returns the flat course grade as a percentage (0–100).
+ * If any item has a weight set, uses a weighted average of each item's
+ * percentage score: sum(pct_i * w_i) / sum(w_i).
+ * Items without a weight default to weight = 1 (equal contribution).
+ */
+export function getFlatCourseGrade(course: Course): number | null {
+  const allItems = course.categories.flatMap((c) => c.items);
+  if (allItems.length === 0) return null;
+
+  let weightedSum = 0;
+  let totalWeight = 0;
+
+  for (const item of allItems) {
+    if (item.scorePossible === 0) continue;
+    const pct = (item.scoreEarned / item.scorePossible) * 100;
+    const w = item.weight != null && item.weight > 0 ? item.weight : 1;
+    weightedSum += pct * w;
+    totalWeight += w;
+  }
+
+  if (totalWeight === 0) return null;
+  return weightedSum / totalWeight;
 }

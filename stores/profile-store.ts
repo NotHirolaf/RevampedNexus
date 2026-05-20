@@ -13,6 +13,8 @@ const defaultProfile: UserProfile = {
   semester: "",
   gpaScale: "4.0",
   customGpaMax: null,
+  creditsObtained: null,
+  creditsRequired: null,
 };
 
 export const useProfileStore = create<ProfileState>()(

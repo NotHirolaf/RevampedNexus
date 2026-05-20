@@ -8,11 +8,12 @@ import { AppearanceSection } from "@/components/settings/appearance-section";
 import { DataSection } from "@/components/settings/data-section";
 import { AccountSection } from "@/components/settings/account-section";
 import { AboutSection } from "@/components/settings/about-section";
+import { CanvasSection } from "@/components/settings/canvas-section";
 import { useMounted } from "@/hooks/use-hydration";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatePresence, motion } from "motion/react";
 
-const TAB_ORDER = ["profile", "modules", "appearance", "data", "account", "about"] as const;
+const TAB_ORDER = ["profile", "modules", "appearance", "data", "canvas", "account", "about"] as const;
 type TabValue = (typeof TAB_ORDER)[number];
 
 const TAB_CONTENT: Record<TabValue, React.ReactNode> = {
@@ -20,6 +21,7 @@ const TAB_CONTENT: Record<TabValue, React.ReactNode> = {
   modules: <ModulesSection />,
   appearance: <AppearanceSection />,
   data: <DataSection />,
+  canvas: <CanvasSection />,
   account: <AccountSection />,
   about: <AboutSection />,
 };
@@ -58,6 +60,7 @@ export default function SettingsPage() {
           <TabsTrigger value="modules">Modules</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="data">Data</TabsTrigger>
+          <TabsTrigger value="canvas">Canvas LMS</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
         </TabsList>

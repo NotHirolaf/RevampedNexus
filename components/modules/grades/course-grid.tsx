@@ -5,7 +5,7 @@ import { GraduationCap, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useGradeStore } from "@/stores/useGradeStore";
-import { getCourseGrade, getLetterGrade } from "@/lib/grade-utils";
+import { getFlatCourseGrade, getLetterGrade } from "@/lib/grade-utils";
 import { AddCourseModal } from "./add-course-modal";
 import type { Course } from "@/types";
 
@@ -20,10 +20,10 @@ function CourseCard({
   course: Course;
   onClick: () => void;
 }) {
-  const grade = getCourseGrade(course);
+  const grade = getFlatCourseGrade(course);
   const letter = grade !== null ? getLetterGrade(grade) : null;
   const gradeDisplay = grade !== null ? `${grade.toFixed(1)}%` : "—";
-  const categoryCount = course.categories.length;
+  const itemCount = course.categories.reduce((s, c) => s + c.items.length, 0);
 
   return (
     <button
@@ -59,9 +59,9 @@ function CourseCard({
               )}
             </div>
             <p className="text-xs text-muted-foreground pb-0.5">
-              {categoryCount === 0
-                ? "No categories"
-                : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
+              {itemCount === 0
+                ? "No items"
+                : `${itemCount} ${itemCount === 1 ? "item" : "items"}`}
             </p>
           </div>
 

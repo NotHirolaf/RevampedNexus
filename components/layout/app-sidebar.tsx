@@ -16,6 +16,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { LayoutDashboard, Settings } from "lucide-react";
+import { Logo } from "@/components/layout/logo";
 import { useModuleStore } from "@/stores/module-store";
 import { modules, MODULE_CATEGORIES, CATEGORY_ORDER } from "@/lib/modules";
 import { useMounted } from "@/hooks/use-hydration";
@@ -42,13 +43,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" render={<Link href="/dashboard" />}>
-              <div className="flex items-center justify-center size-8 rounded-lg bg-primary text-primary-foreground">
-                <LayoutDashboard className="size-4" />
-              </div>
-              <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-semibold">Nexus</span>
-                <span className="text-xs text-muted-foreground">University App</span>
-              </div>
+              <Logo />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

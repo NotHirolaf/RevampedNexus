@@ -4,6 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { FirebaseProvider } from "@/components/firebase-provider";
+import { CanvasSyncProvider } from "@/components/canvas-sync-provider";
+import { StorageAvailabilityBanner } from "@/components/storage-availability-banner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,10 +29,12 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           <TooltipProvider>
+            <StorageAvailabilityBanner />
             {children}
           </TooltipProvider>
           <Toaster />
           <FirebaseProvider />
+          <CanvasSyncProvider />
         </ThemeProvider>
       </body>
     </html>

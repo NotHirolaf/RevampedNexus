@@ -7,8 +7,17 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { useProfileStore } from "@/stores/profile-store";
 import { useModuleStore } from "@/stores/module-store";
 import { useThemeStore } from "@/stores/theme-store";
+import { useTodoStore } from "@/stores/useTodoStore";
+import { useEventStore } from "@/stores/useEventStore";
+import { useTimetableStore } from "@/stores/useTimetableStore";
+import { useGradeStore } from "@/stores/useGradeStore";
+import { usePomodoroStore } from "@/stores/usePomodoroStore";
+import { useLinkStore } from "@/stores/useLinkStore";
+import { useHabitStore } from "@/stores/useHabitStore";
+import { useCanvasStore } from "@/stores/useCanvasStore";
+import { useDashboardStore } from "@/stores/useDashboardStore";
 import type { AccentColor } from "@/types";
-import type { UserProfile } from "@/types";
+import type { UserProfile, TodoItem, EventItem, TimetableEntry, Course, PomodoroSession, PomodoroSettings, QuickLink, Habit } from "@/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sync registry — one entry per Zustand store that should sync with Firestore.
@@ -82,6 +91,130 @@ function buildRegistry(): SyncEntry[] {
         if (d.accentColor) {
           useThemeStore.getState().setAccentColor(d.accentColor as AccentColor);
         }
+      },
+    },
+    // ── Module data stores ──────────────────────────────────────────────
+    {
+      docId: "todos",
+      store: {
+        subscribe: (listener) => useTodoStore.subscribe(() => listener()),
+      },
+      getData: () => ({ items: useTodoStore.getState().items }),
+      setData: (data) => {
+        const d = data as { items?: TodoItem[] };
+        if (Array.isArray(d.items)) useTodoStore.getState().setTodos(d.items);
+      },
+    },
+    {
+      docId: "events",
+      store: {
+        subscribe: (listener) => useEventStore.subscribe(() => listener()),
+      },
+      getData: () => ({ items: useEventStore.getState().items }),
+      setData: (data) => {
+        const d = data as { items?: EventItem[] };
+        if (Array.isArray(d.items)) useEventStore.getState().setEvents(d.items);
+      },
+    },
+    {
+      docId: "timetable",
+      store: {
+        subscribe: (listener) => useTimetableStore.subscribe(() => listener()),
+      },
+      getData: () => ({ entries: useTimetableStore.getState().entries }),
+      setData: (data) => {
+        const d = data as { entries?: TimetableEntry[] };
+        if (Array.isArray(d.entries)) useTimetableStore.getState().setEntries(d.entries);
+      },
+    },
+    {
+      docId: "grades",
+      store: {
+        subscribe: (listener) => useGradeStore.subscribe(() => listener()),
+      },
+      getData: () => ({ courses: useGradeStore.getState().courses }),
+      setData: (data) => {
+        const d = data as { courses?: Course[] };
+        if (Array.isArray(d.courses)) useGradeStore.getState().setCourses(d.courses);
+      },
+    },
+    {
+      docId: "pomodoro",
+      store: {
+        subscribe: (listener) => usePomodoroStore.subscribe(() => listener()),
+      },
+      getData: () => ({
+        sessions: usePomodoroStore.getState().sessions,
+        settings: usePomodoroStore.getState().settings,
+      }),
+      setData: (data) => {
+        const d = data as { sessions?: PomodoroSession[]; settings?: PomodoroSettings };
+        if (Array.isArray(d.sessions)) usePomodoroStore.getState().setSessions(d.sessions);
+        if (d.settings && typeof d.settings === "object") usePomodoroStore.getState().setSettings(d.settings);
+      },
+    },
+    {
+      docId: "links",
+      store: {
+        subscribe: (listener) => useLinkStore.subscribe(() => listener()),
+      },
+      getData: () => ({ links: useLinkStore.getState().links }),
+      setData: (data) => {
+        const d = data as { links?: QuickLink[] };
+        if (Array.isArray(d.links)) useLinkStore.getState().setLinks(d.links);
+      },
+    },
+    {
+      docId: "habits",
+      store: {
+        subscribe: (listener) => useHabitStore.subscribe(() => listener()),
+      },
+      getData: () => ({ habits: useHabitStore.getState().habits }),
+      setData: (data) => {
+        const d = data as { habits?: Habit[] };
+        if (Array.isArray(d.habits)) useHabitStore.getState().setHabits(d.habits);
+      },
+    },
+    {
+      docId: "canvas-config",
+      store: {
+        subscribe: (listener) => useCanvasStore.subscribe(() => listener()),
+      },
+      getData: () => {
+        const s = useCanvasStore.getState();
+        // Deliberately exclude token — never sync to Firestore
+        return {
+          baseUrl: s.baseUrl,
+          selectedCourseIds: s.selectedCourseIds,
+          syncIntervalMinutes: s.syncIntervalMinutes,
+          lastSyncedAt: s.lastSyncedAt,
+        };
+      },
+      setData: (data) => {
+        const d = data as {
+          baseUrl?: string;
+          selectedCourseIds?: number[];
+          syncIntervalMinutes?: number;
+          lastSyncedAt?: string;
+        };
+        if (d.selectedCourseIds) useCanvasStore.getState().setSelectedCourses(d.selectedCourseIds);
+        if (typeof d.syncIntervalMinutes === "number") useCanvasStore.getState().setSyncInterval(d.syncIntervalMinutes);
+        if (d.lastSyncedAt) useCanvasStore.getState().setLastSyncedAt(d.lastSyncedAt);
+      },
+    },
+    {
+      docId: "dashboard-layout",
+      store: {
+        subscribe: (listener) => useDashboardStore.subscribe(() => listener()),
+      },
+      getData: () => ({
+        widgetOrder: useDashboardStore.getState().widgetOrder,
+        hiddenWidgets: useDashboardStore.getState().hiddenWidgets,
+      }),
+      setData: (data) => {
+        const d = data as { widgetOrder?: string[]; hiddenWidgets?: string[] };
+        if (Array.isArray(d.widgetOrder)) useDashboardStore.getState().setWidgetOrder(d.widgetOrder);
+        if (Array.isArray(d.hiddenWidgets)) useDashboardStore.getState().setHiddenWidgets(d.hiddenWidgets);
       },
     },
   ];

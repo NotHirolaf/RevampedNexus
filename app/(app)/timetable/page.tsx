@@ -1,5 +1,5 @@
-import { ModulePlaceholder } from "@/components/modules/module-placeholder";
+import { TimetableView } from "@/components/modules/timetable/timetable-view";
 
 export default function TimetablePage() {
-  return <ModulePlaceholder moduleId="timetable" />;
+  return <TimetableView />;
 }

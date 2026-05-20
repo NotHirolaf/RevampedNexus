@@ -157,8 +157,8 @@ export function DataSection() {
       if (importPreview.courses) {
         useGradeStore.getState().setCourses(importPreview.courses);
       }
-      if ((importPreview as any).gpaData) {
-        const d = (importPreview as any).gpaData;
+      if (importPreview.gpaData) {
+        const d = importPreview.gpaData;
         useGPAStore.getState().setBase(d.baseCGPA ?? null, d.baseCredits ?? 0);
         if (d.semesterUpdates) useGPAStore.getState().setSemesterUpdates(d.semesterUpdates);
       }

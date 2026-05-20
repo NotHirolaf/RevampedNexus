@@ -13,16 +13,30 @@ interface SemesterChartProps {
   semesters: SemesterData[];
 }
 
-const CHART_H = 100;
-const BAR_W = 40;
-const GAP = 16;
+const CHART_H = 80;
+const BAR_W = 32;
+const MIN_GAP = 12;
 const PADDING_X = 8;
-const PADDING_TOP = 20; // space for GPA label above bar
+const PADDING_TOP = 18; // space for GPA label above bar
+const LABEL_FONT_PX = 10;
+const LABEL_CHAR_W = 5.6; // approx width per char at fontSize 10
+const LABEL_H = 16; // reserved height below baseline
 
 export function SemesterChart({ semesters: rawSemesters }: SemesterChartProps) {
   const semesters = [...rawSemesters].sort((a, b) =>
     a.label.localeCompare(b.label)
   );
+
+  // Column width: at least BAR_W + MIN_GAP, but grow to fit the longest label
+  const longestLabelChars = semesters.reduce(
+    (m, s) => Math.max(m, (s.label || "").length),
+    0
+  );
+  const labelWidthPx = longestLabelChars * LABEL_CHAR_W;
+  const colWidth = Math.max(BAR_W + MIN_GAP, labelWidthPx + 8);
+
+  const svgWidth = semesters.length * colWidth + PADDING_X * 2;
+  const svgHeight = CHART_H + PADDING_TOP + LABEL_H + 8;
 
   return (
     <Card>
@@ -39,19 +53,12 @@ export function SemesterChart({ semesters: rawSemesters }: SemesterChartProps) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <svg
-              viewBox={`0 0 ${
-                semesters.length * (BAR_W + GAP) - GAP + PADDING_X * 2
-              } ${CHART_H + PADDING_TOP + 24}`}
-              className="w-full"
-              style={{
-                minWidth: semesters.length * (BAR_W + GAP) - GAP + PADDING_X * 2,
-              }}
-            >
+            <svg width={svgWidth} height={svgHeight}>
               {semesters.map((sem, i) => {
                 const maxGpa = sem.maxGpa > 0 ? sem.maxGpa : 4.0;
                 const barH = Math.max(2, (sem.gpa / maxGpa) * CHART_H);
-                const x = PADDING_X + i * (BAR_W + GAP);
+                const colCenter = PADDING_X + i * colWidth + colWidth / 2;
+                const x = colCenter - BAR_W / 2;
                 const y = PADDING_TOP + (CHART_H - barH);
 
                 return (
@@ -68,7 +75,7 @@ export function SemesterChart({ semesters: rawSemesters }: SemesterChartProps) {
                     />
                     {/* GPA label above bar */}
                     <text
-                      x={x + BAR_W / 2}
+                      x={colCenter}
                       y={y - 5}
                       textAnchor="middle"
                       fontSize={11}
@@ -79,12 +86,12 @@ export function SemesterChart({ semesters: rawSemesters }: SemesterChartProps) {
                     </text>
                     {/* Semester label below */}
                     <text
-                      x={x + BAR_W / 2}
-                      y={PADDING_TOP + CHART_H + 16}
+                      x={colCenter}
+                      y={PADDING_TOP + CHART_H + LABEL_H}
                       textAnchor="middle"
-                      fontSize={10}
+                      fontSize={LABEL_FONT_PX}
                       fill="currentColor"
-                      opacity={0.6}
+                      opacity={0.7}
                     >
                       {sem.label}
                     </text>
@@ -96,11 +103,7 @@ export function SemesterChart({ semesters: rawSemesters }: SemesterChartProps) {
               <line
                 x1={PADDING_X}
                 y1={PADDING_TOP + CHART_H}
-                x2={
-                  semesters.length * (BAR_W + GAP) -
-                  GAP +
-                  PADDING_X
-                }
+                x2={svgWidth - PADDING_X}
                 y2={PADDING_TOP + CHART_H}
                 stroke="currentColor"
                 opacity={0.15}
