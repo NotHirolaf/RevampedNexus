@@ -445,7 +445,7 @@ function EventModal({
             {showCourseField && courseOptions.length > 0 ? (
               <Select
                 value={courseId || "__none__"}
-                onValueChange={(v) => setCourseId(v === "__none__" ? "" : v)}
+                onValueChange={(v) => setCourseId(v == null || v === "__none__" ? "" : v)}
               >
                 <SelectTrigger className="rounded-lg">
                   <SelectValue placeholder="None" />
@@ -472,7 +472,7 @@ function EventModal({
           {!editing && (
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground font-medium">Repeat</Label>
-              <Select value={recurring} onValueChange={setRecurring}>
+              <Select value={recurring} onValueChange={(v) => setRecurring(v ?? "")}>
                 <SelectTrigger className="rounded-lg">
                   <SelectValue>
                     {RECURRING_OPTIONS.find((o) => o.value === recurring)?.label}
@@ -494,7 +494,7 @@ function EventModal({
               <Bell className="size-3" />
               Reminder
             </Label>
-            <Select value={reminder} onValueChange={setReminder}>
+            <Select value={reminder} onValueChange={(v) => setReminder(v ?? "")}>
               <SelectTrigger className="rounded-lg">
                 <SelectValue>
                   {REMINDER_OPTIONS.find((o) => o.value === reminder)?.label}

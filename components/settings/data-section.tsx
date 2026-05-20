@@ -68,13 +68,13 @@ export function DataSection() {
       onboarding: { completed: useOnboardingStore.getState().completed },
       theme: { accentColor: useThemeStore.getState().accentColor },
       todos: useTodoStore.getState().items,
-      events: useEventStore.getState().items,
+      events: useEventStore.getState().items as ExportData["events"],
       timetable: useTimetableStore.getState().entries,
       courses: useGradeStore.getState().courses,
       gpaData: { baseCGPA: useGPAStore.getState().baseCGPA, baseCredits: useGPAStore.getState().baseCredits, semesterUpdates: useGPAStore.getState().semesterUpdates },
       pomodoroSessions: usePomodoroStore.getState().sessions,
       pomodoroSettings: usePomodoroStore.getState().settings,
-      links: useLinkStore.getState().links,
+      links: useLinkStore.getState().links as unknown as ExportData["links"],
       habits: useHabitStore.getState().habits,
       canvasConfig: canvasState.baseUrl
         ? {

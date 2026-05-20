@@ -113,7 +113,7 @@ export function GpaReferenceView() {
                 size="sm"
                 className="gap-1.5 rounded-full"
                 onClick={() => {
-                  if (confirm("Reset to default US 4.3 scale?")) resetEntries();
+                  if (confirm("Clear all rows?")) resetEntries();
                 }}
               >
                 <RotateCcw className="size-3.5" />
